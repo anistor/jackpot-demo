@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:jackpot-test;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: jackpot-consumer-test
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      auto-startup: false
+    admin:
+      fail-fast: false
+server:
+  port: 0
+app:
+  kafka:
+    topic: jackpot-bets
+    partitions: 1
+    create-topic: false
+  outbox:
+    enabled: false

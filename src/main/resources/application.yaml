@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: jackpot-demo
+  datasource:
+    url: jdbc:mysql://localhost:3307/jackpot?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: jackpotusr
+    password: jackpotpwd
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQLDialect
+      jakarta.persistence.schema-generation.scripts.action: drop-and-create
+      jakarta.persistence.schema-generation.scripts.create-target: ./target/generated-schema.sql
+      jakarta.persistence.schema-generation.scripts.drop-target: ./target/generated-schema.sql
+      jakarta.persistence.schema-generation.database.action: update
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: jackpot-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+server:
+  port: 8080
+app:
+  kafka:
+    topic: jackpot-bets
+    partitions: 3
+  outbox:
+    enabled: true
+    poll-delay-ms: 1000
+    batch-size: 50
+    max-send-retries: 3
+    max-process-retries: 3
