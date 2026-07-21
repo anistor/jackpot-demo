@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Limit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.anistor.jackpot.domain.OutboxEventEntity;
 import io.github.anistor.jackpot.repository.OutboxEventRepository;
@@ -45,6 +46,7 @@ public class OutboxPublisher {
     private final BetProducer betProducer;
 
     @Scheduled(fixedDelayString = "${app.outbox.poll-delay-ms:2000}")
+    @Transactional
     public void publishPending() {
         if (!enabled) {
             return;
@@ -57,13 +59,11 @@ public class OutboxPublisher {
             try {
                 betProducer.send(event.getRoutingKey(), event.getPayload());
                 event.markSent(clockProvider.getClock().instant());
-                outboxRepository.save(event);
                 log.debug("Published bet {} to Kafka", event.getIdempotencyKey());
             } catch (Exception e) {
                 if (event.getAttempts() >= maxSendRetries) {
                     event.markFailed();
                 }
-                outboxRepository.save(event);
                 log.error("Failed to publish bet '{}' (attempts:{}, retry:{}) : {}",
                         event.getIdempotencyKey(),
                         event.getAttempts(),
@@ -71,5 +71,13 @@ public class OutboxPublisher {
                         e.getMessage());
             }
         }
+
+        // All mutated rows are saved together in one JDBC batch (see hibernate.jdbc.batch_size /
+        // hibernate.order_updates in application.yaml) instead of one round-trip per row. Since
+        // this whole method runs in a single transaction, a failure here rolls back every row in
+        // the batch - including ones already successfully published to Kafka - so they'd be
+        // retried (and re-published) on the next poll. Harmless since consumers dedupe by betId,
+        // but worth knowing.
+        outboxRepository.saveAll(pending);
     }
 }
