@@ -9,6 +9,8 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 
 import org.springframework.util.backoff.FixedBackOff;
 
+import io.github.anistor.jackpot.messaging.NonRetryableMessageException;
+
 /**
  * Configure dead-lettering for the bet-processing listener, BetConsumer.
  * DefaultErrorHandler is an auto-detected bean and is wired into the autoconfigured listener container factory.
@@ -31,8 +33,7 @@ public class KafkaConsumerConfig {
         FixedBackOff backOff = new FixedBackOff(retryBackoffMs, Math.max(maxProcessRetries - 1, 0));
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, backOff);
 
-        // deserialization failures surfaced as IllegalStateException by BetConsumer can never succeed on retry, so are sent straight to the DLT
-        errorHandler.addNotRetryableExceptions(IllegalStateException.class);
+        errorHandler.addNotRetryableExceptions(NonRetryableMessageException.class);
         return errorHandler;
     }
 }

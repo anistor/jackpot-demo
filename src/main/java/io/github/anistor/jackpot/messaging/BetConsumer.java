@@ -35,7 +35,7 @@ public class BetConsumer {
         try {
             return objectMapper.readValue(payload, Bet.class);
         } catch (JacksonException e) {
-            throw new IllegalStateException("Failed to deserialize Bet payload: " + payload, e);
+            throw new NonRetryableMessageException("Failed to deserialize Bet payload: " + payload, e);
         }
     }
 }

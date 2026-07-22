@@ -49,17 +49,17 @@ The bet endpoints are annotated with springdoc-openapi. When the app is running:
 
 ## Running
 
-We assume you have **Docker** and **Maven** installed. The app runs on Java 25 and any Maven 3.9.x should be fine.
+We assume you have **Docker** and **Maven** installed. The app runs on **Java 25** and any Maven 3.9.x should be fine.
 
 Start MySQL + Kafka, then the SB app:
 
 ```bash
 docker compose up -d
-mvn -s ./maven-settings.xml clean package spring-boot:run
+mvn -s ./maven-settings.xml spring-boot:run
 # or: mvn -s ./maven-settings.xml -DskipTests package && java -jar target/jackpot-demo-1.0-SNAPSHOT.jar
 ```
 
-`docker compose` starts **MySQL 8.4** (`localhost:3307`, database/user/password `jackpotuser/jackpotpwd`,
+`docker compose` starts **MySQL** (`localhost:3307`, database/user/password `jackpotuser/jackpotpwd`,
 persisted in a named volume) and Kafka. The broker runs in KRaft mode (no ZooKeeper). It exposes two listeners: `localhost:9092` for host clients
 (this app) and `kafka:29092` for in-network clients. A **Kafka UI** is also included at <http://localhost:8090> for inspecting topics, partitions and messages.
 
@@ -143,7 +143,14 @@ configured type. Adding a new scheme is a new bean - no existing code changes.
 - **Variable reward:** win chance rises with the pool, reaching 100% at the configured limit
   (guaranteeing eventual payout).
 
-### 6. API versioning: omitted
+### 6. Preventing duplicate requests from client: omitted
+Currently, if the client retries a `POST /api/bets` due to a network timeout, the bet will be silently duplicated.
+This can be easily avoided if we require the client to provide an idempotency key, or even simpler, by asking the client
+to provide the unique bet ID itself rather than generating it server-side. The bet ID would then serve as idempotency key
+throughout the flow. Current implementation is idempotent starting from the outbox, but the initial `POST` is not 
+idempotent. This is a known limitation.
+
+### 7. API versioning: omitted
 The two endpoints are left unversioned for simplicity. If the service were exposed to external consumers,
 the natural extension point would be URI prefixing (`/api/v1/...`) or media-type/header-based versioning.
 
@@ -152,4 +159,5 @@ the natural extension point would be URI prefixing (`/api/v1/...`) or media-type
   `ddl-auto: update` keeps the schema in sync; the seeder only inserts jackpots when none exist.
 - Tests run against in-memory H2 (in MySQL-compatibility mode) so `mvn test` needs no containers.
 - The outbox publisher uses a simple fixed-delay poll, sufficient for this scope, but not ideal for horizontally scaled services.
-- The code still contains several TODOs for future improvements.
+- Dead lettered messages just end up in the DLT topic; no further handling is implemented. In a real system, a DLT consumer would be needed to inspect and handle those messages.
+- The code still contains several TODOs for future improvements or hinting at the already mentioned limitations.
