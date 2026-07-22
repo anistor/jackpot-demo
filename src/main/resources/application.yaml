@@ -14,6 +14,8 @@ spring:
       hibernate.dialect: org.hibernate.dialect.MySQLDialect
       hibernate.jdbc.batch_size: 50
       hibernate.order_updates: true
+      hibernate.order_inserts: true
+      hibernate.jdbc.batch_versioned_data: true
       jakarta.persistence.schema-generation.scripts.action: drop-and-create
       jakarta.persistence.schema-generation.scripts.create-target: ./target/generated-schema.sql
       jakarta.persistence.schema-generation.scripts.drop-target: ./target/generated-schema.sql

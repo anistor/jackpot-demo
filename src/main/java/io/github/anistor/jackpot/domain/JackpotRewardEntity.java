@@ -12,6 +12,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,13 +25,19 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "jackpot_reward")
+@Table(name = "jackpot_reward",
+        indexes = {
+                @Index(name = "idx_reward_user_id", columnList = "user_id"),
+                @Index(name = "idx_reward_jackpot_id", columnList = "jackpot_id")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class JackpotRewardEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "jackpot_reward_seq")
+    @SequenceGenerator(name = "jackpot_reward_seq", sequenceName = "jackpot_reward_seq", allocationSize = 50)
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -41,7 +49,7 @@ public class JackpotRewardEntity {
     @Column(nullable = false)
     private String jackpotId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal rewardAmount;
 
     @CreatedDate

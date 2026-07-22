@@ -11,6 +11,8 @@ spring:
     properties:
       hibernate.jdbc.batch_size: 50
       hibernate.order_updates: true
+      hibernate.order_inserts: true
+      hibernate.jdbc.batch_versioned_data: true
   kafka:
     bootstrap-servers: localhost:9092
     consumer:

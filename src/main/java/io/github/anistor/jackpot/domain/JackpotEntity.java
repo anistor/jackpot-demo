@@ -32,30 +32,30 @@ public class JackpotEntity implements JackpotConfiguration {
     @Id
     private String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal initialPool;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal currentPool;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ContributionStrategy.ContributionType contributionType;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 6, scale = 5)
     private BigDecimal contributionRate;
 
-    @Column
+    @Column(precision = 19, scale = 4)
     private BigDecimal contributionPoolLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RewardStrategy.RewardType rewardType;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 6, scale = 5)
     private BigDecimal rewardRate;
 
-    @Column
+    @Column(precision = 19, scale = 4)
     private BigDecimal rewardPoolLimit;
 
     @Version

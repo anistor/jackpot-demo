@@ -2,8 +2,11 @@ package io.github.anistor.jackpot.domain;
 
 import java.time.Instant;
 
+import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +17,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.Lob;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -32,7 +35,8 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "outbox_event",
         indexes = {
-                @Index(name = "idx_created_at", columnList = "created_at")
+                @Index(name = "idx_created_at", columnList = "created_at"),
+                @Index(name = "idx_outbox_status_created_at", columnList = "status, created_at")
         }
 )
 @Getter
@@ -46,7 +50,8 @@ public class OutboxEventEntity {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "outbox_event_seq")
+    @SequenceGenerator(name = "outbox_event_seq", sequenceName = "outbox_event_seq", allocationSize = 50)
     private Long id;
 
     /**
@@ -61,8 +66,12 @@ public class OutboxEventEntity {
     @Column(nullable = false)
     private String routingKey;
 
-    @Lob
-    @Column(nullable = false)
+    /**
+     * Stored as a native JSON column (via hypersistence-utils' {@link JsonType}) rather than a plain
+     * CLOB/text so the database validates the payload shape and it stays queryable/indexable if needed later.
+     */
+    @Type(JsonType.class)
+    @Column(nullable = false, columnDefinition = "json")
     private String payload;
 
     @Enumerated(EnumType.STRING)

@@ -14,6 +14,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -27,7 +29,12 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "processed_bet")
+@Table(name = "processed_bet",
+        indexes = {
+                @Index(name = "idx_processed_bet_user_id", columnList = "user_id"),
+                @Index(name = "idx_processed_bet_jackpot_id", columnList = "jackpot_id")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProcessedBetEntity {
@@ -39,7 +46,8 @@ public class ProcessedBetEntity {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "processed_bet_seq")
+    @SequenceGenerator(name = "processed_bet_seq", sequenceName = "processed_bet_seq", allocationSize = 50)
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -55,7 +63,7 @@ public class ProcessedBetEntity {
     @Column(nullable = false)
     private Status status;
 
-    @Column
+    @Column(precision = 19, scale = 4)
     private BigDecimal rewardAmount;
 
     @Column(length = 256)
