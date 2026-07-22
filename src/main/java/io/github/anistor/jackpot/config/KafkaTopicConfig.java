@@ -26,4 +26,20 @@ public class KafkaTopicConfig {
                 .replicas(REPLICA_COUNT)
                 .build();
     }
+
+    /**
+     * The dead-letter topic for 'jackpot-bets', named per Spring Kafka's {@code
+     * DeadLetterPublishingRecoverer} convention ({@code <topic>.DLT}). Must have at least as many
+     * partitions as the source topic since the recoverer republishes to the same partition number
+     * as the original record by default.
+     */
+    @Bean
+    @ConditionalOnProperty(name = "app.kafka.create-topic", havingValue = "true", matchIfMissing = true)
+    public NewTopic jackpotBetsDeadLetterTopic(@Value("${app.kafka.topic}") String topicName,
+                                               @Value("${app.kafka.partitions:3}") int partitions) {
+        return TopicBuilder.name(topicName + ".DLT")
+                .partitions(partitions)
+                .replicas(REPLICA_COUNT)
+                .build();
+    }
 }

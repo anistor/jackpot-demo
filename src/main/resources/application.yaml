@@ -34,6 +34,7 @@ app:
   kafka:
     topic: jackpot-bets
     partitions: 3
+    retry-backoff-ms: 200
   outbox:
     enabled: true
     poll-delay-ms: 1000

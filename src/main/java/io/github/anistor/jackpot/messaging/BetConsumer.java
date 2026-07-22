@@ -1,30 +1,25 @@
 package io.github.anistor.jackpot.messaging;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import io.github.anistor.jackpot.service.BetProcessingService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 /**
  * Consumes bets from the 'jackpot-bets' topic and hands them to the processing service.
- * Because Kafka delivers at-least-once, processing is idempotent (we dedup on bet id),
- * optimistic locking failures are retried a few times - the DB-level safety net behind Kafka's
- * per-jackpot partition ordering.
+ * Because Kafka delivers at-least-once, processing is idempotent (we dedup on bet id).
+ * Retries (e.g. for optimistic locking conflicts - the DB-level safety net behind Kafka's
+ * per-jackpot partition ordering) and dead-lettering after exhausting them are handled by the
+ * container-level error handler configured in {@link io.github.anistor.jackpot.config.KafkaConsumerConfig},
+ * not here.
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class BetConsumer {
-
-    @Value("${app.outbox.max-process-retries:3}")
-    private final int maxProcessRetries;
 
     private final BetProcessingService processingService;
 
@@ -33,20 +28,7 @@ public class BetConsumer {
     @KafkaListener(topics = "${app.kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void onMessage(String payload) {
         Bet bet = deserialize(payload);
-
-        int remainingAttempts = maxProcessRetries;
-        while (true) {
-            try {
-                processingService.process(bet);
-                break;
-            } catch (OptimisticLockingFailureException e) {
-                log.warn("Optimistic lock conflict processing bet {} (attempt {}/{})",
-                        bet.betId(), maxProcessRetries - remainingAttempts + 1, maxProcessRetries);
-                if (--remainingAttempts <= 0) {
-                    throw e;
-                }
-            }
-        }
+        processingService.process(bet);
     }
 
     private Bet deserialize(String payload) {
@@ -57,3 +39,4 @@ public class BetConsumer {
         }
     }
 }
+
