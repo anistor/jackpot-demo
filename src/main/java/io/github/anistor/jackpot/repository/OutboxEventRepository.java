@@ -1,6 +1,7 @@
 package io.github.anistor.jackpot.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEventEntity, 
     List<OutboxEventEntity> findByStatusOrderByCreatedAtAsc(OutboxEventEntity.Status status, Limit limit);
 
     boolean existsByIdempotencyKey(String idempotencyKey);
+
+    Optional<OutboxEventEntity> findByIdempotencyKey(String idempotencyKey);
 }

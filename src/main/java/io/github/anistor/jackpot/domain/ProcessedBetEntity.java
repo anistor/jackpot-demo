@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,6 +34,9 @@ import lombok.NoArgsConstructor;
         indexes = {
                 @Index(name = "idx_processed_bet_user_id", columnList = "user_id"),
                 @Index(name = "idx_processed_bet_jackpot_id", columnList = "jackpot_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "idx_processed_bet_bet_id", columnNames = "bet_id")
         }
 )
 @Getter
@@ -50,7 +54,7 @@ public class ProcessedBetEntity {
     @SequenceGenerator(name = "processed_bet_seq", sequenceName = "processed_bet_seq", allocationSize = 50)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "bet_id", nullable = false)
     private String betId;
 
     @Column(nullable = false)
@@ -71,6 +75,7 @@ public class ProcessedBetEntity {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
+    @SuppressWarnings("unused")
     private Instant processedAt;
 
     @Builder

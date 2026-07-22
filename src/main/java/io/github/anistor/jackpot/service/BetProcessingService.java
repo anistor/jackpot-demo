@@ -75,25 +75,33 @@ public class BetProcessingService {
                 .computeContribution(bet.betAmount(), jackpot);
         jackpot.addContributionToPool(contributionAmount);
 
-        JackpotContributionEntity contribution = JackpotContributionEntity.builder()
+        boolean won = evaluateBet(jackpot);
+        BigDecimal rewardAmount = won ? jackpot.getCurrentPool() : null;
+
+        ProcessedBetEntity processedBet = ProcessedBetEntity.builder()
                 .betId(bet.betId())
                 .userId(bet.userId())
                 .jackpotId(bet.jackpotId())
+                .status(won ? ProcessedBetEntity.Status.WON : ProcessedBetEntity.Status.LOST)
+                .rewardAmount(rewardAmount)
+                .build();
+        processedBetRepository.save(processedBet);
+
+        JackpotContributionEntity contribution = JackpotContributionEntity.builder()
+                .bet(processedBet)
+                .userId(bet.userId())
+                .jackpot(jackpot)
                 .stakeAmount(bet.betAmount())
                 .contributionAmount(contributionAmount)
                 .currentJackpotAmount(jackpot.getCurrentPool())
                 .build();
         contributionRepository.save(contribution);
 
-        boolean won = evaluateBet(jackpot);
-
-        BigDecimal rewardAmount = null;
         if (won) {
-            rewardAmount = jackpot.getCurrentPool();
             JackpotRewardEntity reward = JackpotRewardEntity.builder()
-                    .betId(bet.betId())
+                    .bet(processedBet)
                     .userId(bet.userId())
-                    .jackpotId(bet.jackpotId())
+                    .jackpot(jackpot)
                     .rewardAmount(rewardAmount)
                     .build();
             rewardRepository.save(reward);
@@ -104,15 +112,6 @@ public class BetProcessingService {
         }
 
         jackpotRepository.save(jackpot);
-
-        ProcessedBetEntity processedBet = ProcessedBetEntity.builder()
-                .betId(bet.betId())
-                .userId(bet.userId())
-                .jackpotId(bet.jackpotId())
-                .status(won ? ProcessedBetEntity.Status.WON : ProcessedBetEntity.Status.LOST)
-                .rewardAmount(rewardAmount)
-                .build();
-        processedBetRepository.save(processedBet);
     }
 
     /**

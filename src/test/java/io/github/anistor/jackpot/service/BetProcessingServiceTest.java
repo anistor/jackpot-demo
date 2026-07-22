@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import io.github.anistor.jackpot.domain.JackpotContributionEntity;
 import io.github.anistor.jackpot.domain.JackpotEntity;
+import io.github.anistor.jackpot.domain.JackpotRewardEntity;
 import io.github.anistor.jackpot.domain.ProcessedBetEntity;
 import io.github.anistor.jackpot.messaging.Bet;
 import io.github.anistor.jackpot.repository.JackpotContributionRepository;
@@ -70,8 +72,11 @@ class BetProcessingServiceTest {
         ProcessedBetEntity outcome = processedBetRepository.findByBetId(bet.betId()).orElseThrow();
         assertThat(outcome.isWon()).isFalse();
         assertThat(outcome.getRewardAmount()).isNull();
-        assertThat(contributionRepository.findByBetId(bet.betId())).isPresent();
-        assertThat(contributionRepository.findByBetId(bet.betId()).orElseThrow().getContributionAmount()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(outcome.getProcessedAt()).isNotNull();
+
+        JackpotContributionEntity contribution = contributionRepository.findByBetId(bet.betId()).orElseThrow();
+        assertThat(contribution.getContributionAmount()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(contribution.getCreatedAt()).isNotNull();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
     }
 
@@ -85,8 +90,11 @@ class BetProcessingServiceTest {
         ProcessedBetEntity outcome = processedBetRepository.findByBetId(bet.betId()).orElseThrow();
         assertThat(outcome.isWon()).isTrue();
         assertThat(outcome.getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
-        assertThat(rewardRepository.findByBetId(bet.betId())).isPresent();
-        assertThat(rewardRepository.findByBetId(bet.betId()).orElseThrow().getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
+        assertThat(outcome.getProcessedAt()).isNotNull();
+
+        JackpotRewardEntity reward = rewardRepository.findByBetId(bet.betId()).orElseThrow();
+        assertThat(reward.getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
+        assertThat(reward.getCreatedAt()).isNotNull();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1000));
     }
 
@@ -98,7 +106,8 @@ class BetProcessingServiceTest {
         processingService.process(bet);
         processingService.process(bet);
 
-        assertThat(contributionRepository.findByBetId(bet.betId())).isPresent();
+        JackpotContributionEntity contribution = contributionRepository.findByBetId(bet.betId()).orElseThrow();
+        assertThat(contribution.getCreatedAt()).isNotNull();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
     }
 

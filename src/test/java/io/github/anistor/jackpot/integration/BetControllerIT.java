@@ -3,6 +3,7 @@ package io.github.anistor.jackpot.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import io.github.anistor.jackpot.controller.BetStatus;
 import io.github.anistor.jackpot.controller.PlaceBetRequest;
 import io.github.anistor.jackpot.controller.PlaceBetResponse;
 import io.github.anistor.jackpot.controller.RewardResponse;
+import io.github.anistor.jackpot.domain.OutboxEventEntity;
 import io.github.anistor.jackpot.domain.ProcessedBetEntity;
 import io.github.anistor.jackpot.repository.OutboxEventRepository;
 import io.github.anistor.jackpot.repository.ProcessedBetRepository;
@@ -70,8 +72,9 @@ class BetControllerIT {
         assertThat(response.getBody().betId()).isNotBlank();
         assertThat(response.getBody().status()).isEqualTo(BetStatus.PENDING);
 
-        assertThat(outboxRepository.findAll())
-                .anyMatch(event -> event.getIdempotencyKey().equals(response.getBody().betId()));
+        Optional<OutboxEventEntity> outboxEvent = outboxRepository.findByIdempotencyKey(response.getBody().betId());
+        assertThat(outboxEvent).isPresent();
+        assertThat(outboxEvent.orElseThrow().getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -130,6 +133,7 @@ class BetControllerIT {
                 .rewardAmount(BigDecimal.valueOf(1234.56))
                 .build();
         processedBetRepository.save(processedBet);
+        assertThat(processedBet.getProcessedAt()).isNotNull();
 
         ResponseEntity<RewardResponse> response = restClient.get()
                 .uri("/api/bets/{betId}/reward", betId)
@@ -154,6 +158,7 @@ class BetControllerIT {
                 .status(ProcessedBetEntity.Status.LOST)
                 .build();
         processedBetRepository.save(processedBet);
+        assertThat(processedBet.getProcessedAt()).isNotNull();
 
         ResponseEntity<RewardResponse> response = restClient.get()
                 .uri("/api/bets/{betId}/reward", betId)

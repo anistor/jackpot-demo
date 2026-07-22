@@ -19,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,6 +38,9 @@ import lombok.NoArgsConstructor;
         indexes = {
                 @Index(name = "idx_created_at", columnList = "created_at"),
                 @Index(name = "idx_outbox_status_created_at", columnList = "status, created_at")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "idx_outbox_event_idempotency_key", columnNames = "idempotency_key")
         }
 )
 @Getter
@@ -57,7 +61,7 @@ public class OutboxEventEntity {
     /**
      * The UNIQUE key used for idempotency checks in consumer to ensure the same event is not processed multiple times.
      */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String idempotencyKey;
 
     /**
@@ -83,6 +87,7 @@ public class OutboxEventEntity {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
+    @SuppressWarnings("unused")
     private Instant createdAt;
 
     @Column
