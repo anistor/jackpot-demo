@@ -54,7 +54,7 @@ public class BetService {
 
     @Transactional(readOnly = true)
     public BetOutcome getBetOutcome(String betId) {
-        return processedBetRepository.findById(betId)
+        return processedBetRepository.findByBetId(betId)
                 .map(processedBet -> switch (processedBet.getStatus()) {
                     case ProcessedBetEntity.Status.WON ->
                             BetOutcome.won(processedBet.getBetId(), processedBet.getJackpotId(), processedBet.getRewardAmount());

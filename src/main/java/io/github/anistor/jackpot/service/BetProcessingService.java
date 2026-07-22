@@ -51,7 +51,7 @@ public class BetProcessingService {
 
     @Transactional
     public void process(Bet bet) {
-        if (processedBetRepository.existsById(bet.betId())) {
+        if (processedBetRepository.existsByBetId(bet.betId())) {
             log.debug("Bet {} already processed, skipping (idempotent)", bet.betId());
             return;
         }

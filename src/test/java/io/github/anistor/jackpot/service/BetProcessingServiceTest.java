@@ -67,10 +67,11 @@ class BetProcessingServiceTest {
 
         processingService.process(bet);
 
-        ProcessedBetEntity outcome = processedBetRepository.findById(bet.betId()).orElseThrow();
+        ProcessedBetEntity outcome = processedBetRepository.findByBetId(bet.betId()).orElseThrow();
         assertThat(outcome.isWon()).isFalse();
         assertThat(outcome.getRewardAmount()).isNull();
-        assertThat(contributionRepository.findAll()).anyMatch(c -> c.getBetId().equals(bet.betId()) && c.getContributionAmount().compareTo(BigDecimal.valueOf(10)) == 0);
+        assertThat(contributionRepository.findByBetId(bet.betId())).isPresent();
+        assertThat(contributionRepository.findByBetId(bet.betId()).orElseThrow().getContributionAmount()).isEqualByComparingTo(BigDecimal.valueOf(10));
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
     }
 
@@ -81,10 +82,11 @@ class BetProcessingServiceTest {
 
         processingService.process(bet);
 
-        ProcessedBetEntity outcome = processedBetRepository.findById(bet.betId()).orElseThrow();
+        ProcessedBetEntity outcome = processedBetRepository.findByBetId(bet.betId()).orElseThrow();
         assertThat(outcome.isWon()).isTrue();
         assertThat(outcome.getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
-        assertThat(rewardRepository.findAll()).anyMatch(r -> r.getBetId().equals(bet.betId()));
+        assertThat(rewardRepository.findByBetId(bet.betId())).isPresent();
+        assertThat(rewardRepository.findByBetId(bet.betId()).orElseThrow().getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1000));
     }
 
@@ -96,9 +98,7 @@ class BetProcessingServiceTest {
         processingService.process(bet);
         processingService.process(bet);
 
-        long contributions = contributionRepository.findAll().stream()
-                .filter(c -> c.getBetId().equals(bet.betId())).count();
-        assertThat(contributions).isEqualTo(1);
+        assertThat(contributionRepository.findByBetId(bet.betId())).isPresent();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
     }
 
