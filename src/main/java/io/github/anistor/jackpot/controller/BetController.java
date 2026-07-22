@@ -63,7 +63,7 @@ public class BetController {
             case PENDING -> ResponseEntity.ok(RewardResponse.pending(betId));
             case WON -> ResponseEntity.ok(RewardResponse.won(outcome.betId(), outcome.jackpotId(), outcome.rewardAmount()));
             case LOST -> ResponseEntity.ok(RewardResponse.lost(outcome.betId(), outcome.jackpotId()));
-            case ERROR -> ResponseEntity.ok(RewardResponse.error(outcome.betId()));
+            case ERROR -> ResponseEntity.ok(RewardResponse.error(outcome.betId(), outcome.jackpotId()));
         };
     }
 }

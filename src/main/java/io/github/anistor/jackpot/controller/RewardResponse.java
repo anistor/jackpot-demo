@@ -32,8 +32,8 @@ public record RewardResponse(String betId,
         return new RewardResponse(betId, null, BetStatus.PENDING, null);
     }
 
-    public static RewardResponse error(String betId) {
-        return new RewardResponse(betId, null, BetStatus.ERROR, null);
+    public static RewardResponse error(String betId, String jackpotId) {
+        return new RewardResponse(betId, jackpotId, BetStatus.ERROR, null);
     }
 
     public static RewardResponse lost(String betId, String jackpotId) {

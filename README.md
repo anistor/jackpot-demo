@@ -160,4 +160,5 @@ the natural extension point would be URI prefixing (`/api/v1/...`) or media-type
 - Tests run against in-memory H2 (in MySQL-compatibility mode) so `mvn test` needs no containers.
 - The outbox publisher uses a simple fixed-delay poll, sufficient for this scope, but not ideal for horizontally scaled services.
 - Dead lettered messages just end up in the DLT topic; no further handling is implemented. In a real system, a DLT consumer would be needed to inspect and handle those messages.
+- A bet that ends up in ERROR state does not reveal the error reason to the client; in a real system, a more informative error response would be needed.
 - The code still contains several TODOs for future improvements or hinting at the already mentioned limitations.
