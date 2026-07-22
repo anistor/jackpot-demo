@@ -3,7 +3,6 @@ package io.github.anistor.jackpot.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +22,8 @@ import io.github.anistor.jackpot.controller.RewardResponse;
 import io.github.anistor.jackpot.domain.ProcessedBetEntity;
 import io.github.anistor.jackpot.repository.OutboxEventRepository;
 import io.github.anistor.jackpot.repository.ProcessedBetRepository;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 
 /**
  * End-to-end integration test for the two bet endpoints against a real running app (embedded
@@ -120,7 +121,7 @@ class BetControllerIT {
 
     @Test
     void getReturnsWonOutcomeForProcessedWinningBet() {
-        String betId = UUID.randomUUID().toString();
+        String betId = randomUUID();
         ProcessedBetEntity processedBet = ProcessedBetEntity.builder()
                 .betId(betId)
                 .userId("user-3")
@@ -145,7 +146,7 @@ class BetControllerIT {
 
     @Test
     void getReturnsLostOutcomeForProcessedLosingBet() {
-        String betId = UUID.randomUUID().toString();
+        String betId = randomUUID();
         ProcessedBetEntity processedBet = ProcessedBetEntity.builder()
                 .betId(betId)
                 .userId("user-4")
@@ -165,5 +166,9 @@ class BetControllerIT {
         assertThat(response.getBody().jackpotId()).isEqualTo("JP-VARIABLE");
         assertThat(response.getBody().status()).isEqualTo(BetStatus.LOST);
         assertThat(response.getBody().rewardAmount()).isNull();
+    }
+
+    private static String randomUUID() {
+        return UuidCreator.getTimeOrderedEpoch().toString();
     }
 }

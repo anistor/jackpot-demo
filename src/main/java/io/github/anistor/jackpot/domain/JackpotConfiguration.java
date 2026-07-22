@@ -2,19 +2,24 @@ package io.github.anistor.jackpot.domain;
 
 import java.math.BigDecimal;
 
-// TODO Consider moving getCurrentPool() out of this interface to reach immutability.
-
 /**
- * Jackpot pool value and configuration parameters for computing contribution and reward.
- * The actual calculation if performed by the respective strategies, see {@link io.github.anistor.jackpot.service.strategy.ContributionStrategy}
+ * Jackpot pool value and configuration parameters, to be used for computing contribution and reward.
+ * The actual calculation is performed by the respective strategies,
+ * see {@link io.github.anistor.jackpot.service.strategy.ContributionStrategy}
  * and {@link io.github.anistor.jackpot.service.strategy.RewardStrategy}
  */
 public interface JackpotConfiguration {
 
+    // TODO Consider moving getCurrentPool() out of this interface to reach immutability
     /**
      * Current pool amount.
      */
     BigDecimal getCurrentPool();
+
+    /**
+     * Initial pool amount. Pool returns to this value on reset.
+     */
+    BigDecimal getInitialPool();
 
     /**
      * Base contribution rate, right after pool reset.

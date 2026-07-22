@@ -6,28 +6,24 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-import io.github.anistor.jackpot.domain.JackpotEntity;
+import io.github.anistor.jackpot.domain.JackpotConfiguration;
 
 class RewardStrategyTest {
 
-    private JackpotEntity jackpot(RewardStrategy.RewardType type, BigDecimal rate, BigDecimal limit, BigDecimal currentPool) {
-        JackpotEntity j = JackpotEntity.builder()
-                .id("J")
-                .initialPool(BigDecimal.valueOf(1000))
-                .contributionType(ContributionStrategy.ContributionType.FIXED)
-                .contributionRate(BigDecimal.valueOf(0.05))
-                .rewardType(type)
-                .rewardRate(rate)
-                .rewardPoolLimit(limit)
-                .build();
-        j.addContributionToPool(currentPool.subtract(j.getInitialPool()));
-        return j;
-    }
-
     @Test
     void fixedRewardChanceIsConstant() {
-        JackpotEntity small = jackpot(RewardStrategy.RewardType.FIXED, BigDecimal.valueOf(0.25), null, BigDecimal.valueOf(1000));
-        JackpotEntity large = jackpot(RewardStrategy.RewardType.FIXED, BigDecimal.valueOf(0.25), null, BigDecimal.valueOf(999999));
+        JackpotConfiguration small = TestJackpotConfiguration.builder()
+                .initialPool(BigDecimal.valueOf(1000))
+                .currentPool(BigDecimal.valueOf(1000))
+                .contributionRate(BigDecimal.valueOf(0.05))
+                .rewardRate(BigDecimal.valueOf(0.25))
+                .build();
+        JackpotConfiguration large = TestJackpotConfiguration.builder()
+                .initialPool(BigDecimal.valueOf(1000))
+                .currentPool(BigDecimal.valueOf(999999))
+                .contributionRate(BigDecimal.valueOf(0.05))
+                .rewardRate(BigDecimal.valueOf(0.25))
+                .build();
 
         FixedRewardStrategy strategy = new FixedRewardStrategy();
 
@@ -38,8 +34,20 @@ class RewardStrategyTest {
     @Test
     void variableRewardChanceRisesWithPool() {
         VariableRewardStrategy strategy = new VariableRewardStrategy();
-        JackpotEntity low = jackpot(RewardStrategy.RewardType.VARIABLE, BigDecimal.valueOf(0.01), BigDecimal.valueOf(10000), BigDecimal.valueOf(1000));
-        JackpotEntity high = jackpot(RewardStrategy.RewardType.VARIABLE, BigDecimal.valueOf(0.01), BigDecimal.valueOf(10000), BigDecimal.valueOf(5000));
+        JackpotConfiguration low = TestJackpotConfiguration.builder()
+                .initialPool(BigDecimal.valueOf(1000))
+                .currentPool(BigDecimal.valueOf(1000))
+                .contributionRate(BigDecimal.valueOf(0.05))
+                .rewardRate(BigDecimal.valueOf(0.01))
+                .rewardPoolLimit(BigDecimal.valueOf(10000))
+                .build();
+        JackpotConfiguration high = TestJackpotConfiguration.builder()
+                .initialPool(BigDecimal.valueOf(1000))
+                .currentPool(BigDecimal.valueOf(5000))
+                .contributionRate(BigDecimal.valueOf(0.05))
+                .rewardRate(BigDecimal.valueOf(0.01))
+                .rewardPoolLimit(BigDecimal.valueOf(10000))
+                .build();
 
         assertThat(strategy.computeChance(high)).isGreaterThan(strategy.computeChance(low));
     }
@@ -47,7 +55,13 @@ class RewardStrategyTest {
     @Test
     void variableRewardChanceCapsAtOneBeyondLimit() {
         VariableRewardStrategy strategy = new VariableRewardStrategy();
-        JackpotEntity full = jackpot(RewardStrategy.RewardType.VARIABLE, BigDecimal.valueOf(0.01), BigDecimal.valueOf(10000), BigDecimal.valueOf(20000));
+        JackpotConfiguration full = TestJackpotConfiguration.builder()
+                .initialPool(BigDecimal.valueOf(1000))
+                .currentPool(BigDecimal.valueOf(20000))
+                .contributionRate(BigDecimal.valueOf(0.05))
+                .rewardRate(BigDecimal.valueOf(0.01))
+                .rewardPoolLimit(BigDecimal.valueOf(10000))
+                .build();
 
         assertThat(strategy.computeChance(full)).isEqualTo(1);
     }

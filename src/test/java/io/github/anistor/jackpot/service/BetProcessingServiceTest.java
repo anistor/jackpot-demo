@@ -3,21 +3,22 @@ package io.github.anistor.jackpot.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import io.github.anistor.jackpot.messaging.Bet;
 import io.github.anistor.jackpot.domain.JackpotEntity;
 import io.github.anistor.jackpot.domain.ProcessedBetEntity;
+import io.github.anistor.jackpot.messaging.Bet;
 import io.github.anistor.jackpot.repository.JackpotContributionRepository;
 import io.github.anistor.jackpot.repository.JackpotRepository;
 import io.github.anistor.jackpot.repository.JackpotRewardRepository;
 import io.github.anistor.jackpot.repository.ProcessedBetRepository;
 import io.github.anistor.jackpot.service.strategy.ContributionStrategy;
 import io.github.anistor.jackpot.service.strategy.RewardStrategy;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 
 @SpringBootTest
 class BetProcessingServiceTest {
@@ -61,8 +62,8 @@ class BetProcessingServiceTest {
 
     @Test
     void appliesContributionAndRecordsLoss() {
-        JackpotEntity jackpot = alwaysLoses("JP-LOSE-" + UUID.randomUUID());
-        Bet bet = new Bet(UUID.randomUUID().toString(), "user-1", jackpot.getId(), BigDecimal.valueOf(200));
+        JackpotEntity jackpot = alwaysLoses("JP-LOSE-" + randomUUID());
+        Bet bet = new Bet(randomUUID(), "user-1", jackpot.getId(), BigDecimal.valueOf(200));
 
         processingService.process(bet);
 
@@ -75,8 +76,8 @@ class BetProcessingServiceTest {
 
     @Test
     void paysOutAndResetsPoolOnWin() {
-        JackpotEntity jackpot = alwaysWins("JP-WIN-" + UUID.randomUUID());
-        Bet bet = new Bet(UUID.randomUUID().toString(), "user-2", jackpot.getId(), BigDecimal.valueOf(200));
+        JackpotEntity jackpot = alwaysWins("JP-WIN-" + randomUUID());
+        Bet bet = new Bet(randomUUID(), "user-2", jackpot.getId(), BigDecimal.valueOf(200));
 
         processingService.process(bet);
 
@@ -89,14 +90,19 @@ class BetProcessingServiceTest {
 
     @Test
     void skipsAlreadyProcessedBet() {
-        JackpotEntity jackpot = alwaysLoses("JP-DEDUP-" + UUID.randomUUID());
-        Bet bet = new Bet(UUID.randomUUID().toString(), "user-3", jackpot.getId(), BigDecimal.valueOf(200));
+        JackpotEntity jackpot = alwaysLoses("JP-DEDUP-" + randomUUID());
+        Bet bet = new Bet(randomUUID(), "user-3", jackpot.getId(), BigDecimal.valueOf(200));
 
         processingService.process(bet);
         processingService.process(bet);
 
-        long contributions = contributionRepository.findAll().stream().filter(c -> c.getBetId().equals(bet.betId())).count();
+        long contributions = contributionRepository.findAll().stream()
+                .filter(c -> c.getBetId().equals(bet.betId())).count();
         assertThat(contributions).isEqualTo(1);
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
+    }
+
+    private static String randomUUID() {
+        return UuidCreator.getTimeOrderedEpoch().toString();
     }
 }
