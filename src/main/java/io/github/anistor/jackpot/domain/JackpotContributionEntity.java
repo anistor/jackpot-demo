@@ -31,13 +31,13 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "jackpot_contribution",
+@Table(name = "contribution",
         indexes = {
                 @Index(name = "idx_contribution_user_id", columnList = "user_id"),
                 @Index(name = "idx_contribution_jackpot_id", columnList = "jackpot_id")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "idx_jackpot_contribution_bet_id", columnNames = "bet_id")
+                @UniqueConstraint(name = "idx_contribution_bet_id", columnNames = "bet_id")
         }
 )
 @Getter
@@ -45,8 +45,8 @@ import lombok.NoArgsConstructor;
 public class JackpotContributionEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "jackpot_contribution_seq")
-    @SequenceGenerator(name = "jackpot_contribution_seq", sequenceName = "jackpot_contribution_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "contribution_seq")
+    @SequenceGenerator(name = "contribution_seq", sequenceName = "contribution_seq", allocationSize = 50)
     private Long id;
 
     /**
@@ -54,7 +54,7 @@ public class JackpotContributionEntity {
      */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bet_id", referencedColumnName = "bet_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_jackpot_contribution_bet_id"))
+            foreignKey = @ForeignKey(name = "fk_contribution_bet_id"))
     private ProcessedBetEntity bet;
 
     @Column(nullable = false)
@@ -62,7 +62,7 @@ public class JackpotContributionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "jackpot_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_jackpot_contribution_jackpot_id"))
+            foreignKey = @ForeignKey(name = "fk_contribution_jackpot_id"))
     private JackpotEntity jackpot;
 
     @Column(nullable = false, precision = 19, scale = 4)

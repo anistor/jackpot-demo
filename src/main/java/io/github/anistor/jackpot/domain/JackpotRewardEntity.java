@@ -31,13 +31,13 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "jackpot_reward",
+@Table(name = "reward",
         indexes = {
                 @Index(name = "idx_reward_user_id", columnList = "user_id"),
                 @Index(name = "idx_reward_jackpot_id", columnList = "jackpot_id")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "idx_jackpot_reward_bet_id", columnNames = "bet_id")
+                @UniqueConstraint(name = "idx_reward_bet_id", columnNames = "bet_id")
         }
 )
 @Getter
@@ -45,8 +45,8 @@ import lombok.NoArgsConstructor;
 public class JackpotRewardEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "jackpot_reward_seq")
-    @SequenceGenerator(name = "jackpot_reward_seq", sequenceName = "jackpot_reward_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reward_seq")
+    @SequenceGenerator(name = "reward_seq", sequenceName = "reward_seq", allocationSize = 50)
     private Long id;
 
     /**
@@ -54,7 +54,7 @@ public class JackpotRewardEntity {
      */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bet_id", referencedColumnName = "bet_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_jackpot_reward_bet_id"))
+            foreignKey = @ForeignKey(name = "fk_reward_bet_id"))
     private ProcessedBetEntity bet;
 
     @Column(nullable = false)
@@ -62,7 +62,7 @@ public class JackpotRewardEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "jackpot_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_jackpot_reward_jackpot_id"))
+            foreignKey = @ForeignKey(name = "fk_reward_jackpot_id"))
     private JackpotEntity jackpot;
 
     @Column(nullable = false, precision = 19, scale = 4)

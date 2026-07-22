@@ -36,8 +36,8 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "outbox_event",
         indexes = {
-                @Index(name = "idx_created_at", columnList = "created_at"),
-                @Index(name = "idx_outbox_status_created_at", columnList = "status, created_at")
+                @Index(name = "idx_outbox_event_created_at", columnList = "created_at"),
+                @Index(name = "idx_outbox_event_status_created_at", columnList = "status, created_at")
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "idx_outbox_event_idempotency_key", columnNames = "idempotency_key")
