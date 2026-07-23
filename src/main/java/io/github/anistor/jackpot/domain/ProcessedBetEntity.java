@@ -20,6 +20,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+// TODO Consider binary db encoding for UUIDs for efficiency
+
 /**
  * Marks a bet as already processed by the consumer. Serves two purposes:
  * - Idempotency key - the consumer skips a bet whose id already exists here (Kafka delivers at-least-once).
@@ -44,7 +46,7 @@ public class ProcessedBetEntity implements Persistable<String> {
     }
 
     @Id
-    @Column(name = "bet_id", length = 36)
+    @Column(length = 36)
     private String betId;
 
     @Column(nullable = false)

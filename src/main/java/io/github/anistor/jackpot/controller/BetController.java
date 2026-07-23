@@ -40,7 +40,8 @@ public class BetController {
             The bet is processed asynchronously; poll the reward endpoint for the outcome.
             """)
     @ApiResponse(responseCode = "202", description = "Bet accepted for processing")
-    @ApiResponse(responseCode = "400", description = "Invalid bet request", content = @Content)
+    @ApiResponse(responseCode = "400", description = "Invalid bet request",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<PlaceBetResponse> placeBet(@Valid @RequestBody PlaceBetRequest request) {
         String betId = betService.placeBet(request.userId(), request.jackpotId(), request.amount());
         return ResponseEntity.accepted().body(new PlaceBetResponse(betId, BetStatus.PENDING));
