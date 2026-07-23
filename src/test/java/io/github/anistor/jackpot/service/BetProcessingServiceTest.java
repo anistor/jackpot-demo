@@ -64,17 +64,17 @@ class BetProcessingServiceTest {
 
     @Test
     void appliesContributionAndRecordsLoss() {
-        JackpotEntity jackpot = alwaysLoses("JP-LOSE-" + randomUUID());
+        JackpotEntity jackpot = alwaysLoses(randomID("JP-LOSE"));
         Bet bet = new Bet(randomUUID(), "user-1", jackpot.getId(), BigDecimal.valueOf(200));
 
         processingService.process(bet);
 
-        ProcessedBetEntity outcome = processedBetRepository.findByBetId(bet.betId()).orElseThrow();
+        ProcessedBetEntity outcome = processedBetRepository.findById(bet.betId()).orElseThrow();
         assertThat(outcome.isWon()).isFalse();
         assertThat(outcome.getRewardAmount()).isNull();
         assertThat(outcome.getProcessedAt()).isNotNull();
 
-        JackpotContributionEntity contribution = contributionRepository.findByBetId(bet.betId()).orElseThrow();
+        JackpotContributionEntity contribution = contributionRepository.findById(bet.betId()).orElseThrow();
         assertThat(contribution.getContributionAmount()).isEqualByComparingTo(BigDecimal.valueOf(10));
         assertThat(contribution.getCreatedAt()).isNotNull();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
@@ -82,17 +82,17 @@ class BetProcessingServiceTest {
 
     @Test
     void paysOutAndResetsPoolOnWin() {
-        JackpotEntity jackpot = alwaysWins("JP-WIN-" + randomUUID());
+        JackpotEntity jackpot = alwaysWins(randomID("JP-WIN"));
         Bet bet = new Bet(randomUUID(), "user-2", jackpot.getId(), BigDecimal.valueOf(200));
 
         processingService.process(bet);
 
-        ProcessedBetEntity outcome = processedBetRepository.findByBetId(bet.betId()).orElseThrow();
+        ProcessedBetEntity outcome = processedBetRepository.findById(bet.betId()).orElseThrow();
         assertThat(outcome.isWon()).isTrue();
         assertThat(outcome.getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
         assertThat(outcome.getProcessedAt()).isNotNull();
 
-        JackpotRewardEntity reward = rewardRepository.findByBetId(bet.betId()).orElseThrow();
+        JackpotRewardEntity reward = rewardRepository.findById(bet.betId()).orElseThrow();
         assertThat(reward.getRewardAmount()).isEqualByComparingTo(BigDecimal.valueOf(1010));
         assertThat(reward.getCreatedAt()).isNotNull();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1000));
@@ -100,18 +100,30 @@ class BetProcessingServiceTest {
 
     @Test
     void skipsAlreadyProcessedBet() {
-        JackpotEntity jackpot = alwaysLoses("JP-DEDUP-" + randomUUID());
+        JackpotEntity jackpot = alwaysLoses(randomID("JP-DEDUP"));
         Bet bet = new Bet(randomUUID(), "user-3", jackpot.getId(), BigDecimal.valueOf(200));
 
         processingService.process(bet);
         processingService.process(bet);
 
-        JackpotContributionEntity contribution = contributionRepository.findByBetId(bet.betId()).orElseThrow();
+        JackpotContributionEntity contribution = contributionRepository.findById(bet.betId()).orElseThrow();
         assertThat(contribution.getCreatedAt()).isNotNull();
         assertThat(jackpotRepository.findById(jackpot.getId()).orElseThrow().getCurrentPool()).isEqualByComparingTo(BigDecimal.valueOf(1010));
     }
 
     private static String randomUUID() {
         return UuidCreator.getTimeOrderedEpoch().toString();
+    }
+
+    private static String randomID(String humanReadablePrefixSeed) {
+        String id = humanReadablePrefixSeed;
+        if (id.length() > 10) {
+            id = id.substring(0, 10);
+        }
+        id = id + '-' + randomUUID();
+        if (id.length() > 36) {
+            id = id.substring(0, 36);
+        }
+        return id;
     }
 }

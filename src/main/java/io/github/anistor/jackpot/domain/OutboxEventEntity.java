@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
@@ -13,13 +14,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,14 +35,11 @@ import lombok.NoArgsConstructor;
         indexes = {
                 @Index(name = "idx_outbox_event_created_at", columnList = "created_at"),
                 @Index(name = "idx_outbox_event_status_created_at", columnList = "status, created_at")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "idx_outbox_event_idempotency_key", columnNames = "idempotency_key")
         }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OutboxEventEntity {
+public class OutboxEventEntity implements Persistable<String> {
 
     public enum Status {
         PENDING,
@@ -54,20 +48,13 @@ public class OutboxEventEntity {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "outbox_event_seq")
-    @SequenceGenerator(name = "outbox_event_seq", sequenceName = "outbox_event_seq", allocationSize = 50)
-    private Long id;
-
-    /**
-     * The UNIQUE key used for idempotency checks in consumer to ensure the same event is not processed multiple times.
-     */
-    @Column(nullable = false)
+    @Column(length = 36)
     private String idempotencyKey;
 
     /**
      * The key used for routing to the appropriate partition. This is not generally unique.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36)
     private String routingKey;
 
     /**
@@ -122,5 +109,15 @@ public class OutboxEventEntity {
 
     public void markFailed() {
         this.status = Status.FAILED;
+    }
+
+    @Override
+    public String getId() {
+        return idempotencyKey;
+    }
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
     }
 }

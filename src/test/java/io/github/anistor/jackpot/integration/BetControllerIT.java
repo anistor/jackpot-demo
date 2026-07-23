@@ -72,7 +72,7 @@ class BetControllerIT {
         assertThat(response.getBody().betId()).isNotBlank();
         assertThat(response.getBody().status()).isEqualTo(BetStatus.PENDING);
 
-        Optional<OutboxEventEntity> outboxEvent = outboxRepository.findByIdempotencyKey(response.getBody().betId());
+        Optional<OutboxEventEntity> outboxEvent = outboxRepository.findById(response.getBody().betId());
         assertThat(outboxEvent).isPresent();
         assertThat(outboxEvent.orElseThrow().getCreatedAt()).isNotNull();
     }

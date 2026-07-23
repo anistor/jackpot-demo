@@ -54,7 +54,7 @@ public class BetService {
 
     @Transactional(readOnly = true)
     public BetOutcome getBetOutcome(String betId) {
-        return processedBetRepository.findByBetId(betId)
+        return processedBetRepository.findById(betId)
                 .map(processedBet -> switch (processedBet.getStatus()) {
                     case ProcessedBetEntity.Status.WON ->
                             BetOutcome.won(processedBet.getBetId(), processedBet.getJackpotId(), processedBet.getRewardAmount());
@@ -63,7 +63,7 @@ public class BetService {
                     case ProcessedBetEntity.Status.ERROR ->
                             BetOutcome.error(processedBet.getBetId(), processedBet.getJackpotId());
                 })
-                .orElseGet(() -> outboxRepository.existsByIdempotencyKey(betId)
+                .orElseGet(() -> outboxRepository.existsById(betId)
                         ? BetOutcome.pending(betId)
                         : BetOutcome.notFound(betId));
     }

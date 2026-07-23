@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 public class JackpotEntity implements JackpotConfiguration {
 
     @Id
+    @Column(length = 36)
     private String id;
 
     @Column(nullable = false, precision = 19, scale = 4)

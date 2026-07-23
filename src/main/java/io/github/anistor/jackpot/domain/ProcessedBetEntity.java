@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Column;
@@ -11,13 +12,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,14 +31,11 @@ import lombok.NoArgsConstructor;
         indexes = {
                 @Index(name = "idx_processed_bet_user_id", columnList = "user_id"),
                 @Index(name = "idx_processed_bet_jackpot_id", columnList = "jackpot_id")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "idx_processed_bet_bet_id", columnNames = "bet_id")
         }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ProcessedBetEntity {
+public class ProcessedBetEntity implements Persistable<String> {
 
     public enum Status {
         WON,
@@ -50,17 +44,13 @@ public class ProcessedBetEntity {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "processed_bet_seq")
-    @SequenceGenerator(name = "processed_bet_seq", sequenceName = "processed_bet_seq", allocationSize = 50)
-    private Long id;
-
-    @Column(name = "bet_id", nullable = false)
+    @Column(name = "bet_id", length = 36)
     private String betId;
 
     @Column(nullable = false)
     private String userId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36)
     private String jackpotId;
 
     @Enumerated(EnumType.STRING)
@@ -90,5 +80,15 @@ public class ProcessedBetEntity {
 
     public boolean isWon() {
         return status == Status.WON;
+    }
+
+    @Override
+    public String getId() {
+        return betId;
+    }
+
+    @Override
+    public boolean isNew() {
+        return processedAt == null;
     }
 }
