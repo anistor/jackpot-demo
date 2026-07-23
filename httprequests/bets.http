@@ -1,0 +1,55 @@
+############## Sample requests for the bets API (/api/bets) ##############
+
+###
+# Place valid bet
+POST localhost:8080/api/bets
+Content-Type: application/json
+
+{
+  "userId": "u1",
+  "jackpotId": "JP-VARIABLE",
+  "amount": 500
+}
+
+###
+# Place valid bet
+POST localhost:8080/api/bets
+Content-Type: application/json
+
+{
+  "userId": "u2",
+  "jackpotId": "JP-FIXED",
+  "amount": 333
+}
+
+###
+# Test input validation - missing required fields
+POST localhost:8080/api/bets
+Content-Type: application/json
+
+{
+  "garbage": ""
+}
+
+###
+# Test input validation - missing request body
+POST localhost:8080/api/bets
+Content-Type: application/json
+
+###
+# Test input validation - wrong jackpot name, should return PENDING status but the reward API should return ERROR status
+POST localhost:8080/api/bets
+Content-Type: application/json
+
+{
+  "userId": "u2",
+  "jackpotId": "JP-wrong-id",
+  "amount": 333
+}
+
+###
+# Get reward for a bet
+GET localhost:8080/api/bets/019f93ce-88d4-7b25-96ed-248ea64b96d1/reward
+Accept: */*
+
+###

@@ -58,6 +58,7 @@ public class BetProcessingService {
 
         JackpotEntity jackpot = jackpotRepository.findById(bet.jackpotId()).orElse(null);
         if (jackpot == null) {
+            //TODO Consider dead-lettering incoming bets that are not valid instead of persisting them as processed bets with ERROR state
             log.error("Jackpot '{}' not found for bet '{}'", bet.jackpotId(), bet.betId());
             ProcessedBetEntity processedBet = ProcessedBetEntity.builder()
                     .betId(bet.betId())
