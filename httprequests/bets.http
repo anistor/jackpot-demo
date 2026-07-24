@@ -23,6 +23,18 @@ Content-Type: application/json
 }
 
 ###
+# Place valid bet - with called provided id, should return same id in the response
+POST localhost:8080/api/bets
+Content-Type: application/json
+
+{
+  "betId": "019f93ce-88d4-7b25-96ed-778806688788",
+  "userId": "u1",
+  "jackpotId": "JP-VARIABLE",
+  "amount": 123
+}
+
+###
 # Test input validation - missing required fields
 POST localhost:8080/api/bets
 Content-Type: application/json
@@ -49,7 +61,7 @@ Content-Type: application/json
 
 ###
 # Get reward for a bet
-GET localhost:8080/api/bets/019f93ce-88d4-7b25-96ed-248ea64b96d1/reward
+GET localhost:8080/api/bets/019f93ce-88d4-7b25-96ed-778806688788/reward
 Accept: */*
 
 ###

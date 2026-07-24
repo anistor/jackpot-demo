@@ -35,7 +35,7 @@ class BetControllerTest {
 
     @Test
     void postAcceptsBetAndReturnsPendingStatus() throws Exception {
-        given(betService.placeBet(eq("user-1"), eq("JP-FIXED"), any(BigDecimal.class)))
+        given(betService.placeBet(any(), eq("user-1"), eq("JP-FIXED"), any(BigDecimal.class)))
                 .willReturn("bet-123");
 
         mockMvc.perform(post("/api/bets")

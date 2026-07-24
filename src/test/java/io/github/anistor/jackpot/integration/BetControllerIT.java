@@ -60,7 +60,7 @@ class BetControllerIT {
         ResponseEntity<PlaceBetResponse> response = restClient.post()
                 .uri("/api/bets")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new PlaceBetRequest("user-1", "JP-FIXED", BigDecimal.valueOf(200)))
+                .body(new PlaceBetRequest(Optional.empty(), "user-1", "JP-FIXED", BigDecimal.valueOf(200)))
                 .retrieve()
                 .toEntity(PlaceBetResponse.class);
 
@@ -82,7 +82,7 @@ class BetControllerIT {
         HttpStatusCode status = restClient.post()
                 .uri("/api/bets")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new PlaceBetRequest("", "JP-FIXED", BigDecimal.valueOf(-5)))
+                .body(new PlaceBetRequest(Optional.empty(), "", "JP-FIXED", BigDecimal.valueOf(-5)))
                 .exchange((_, res) -> res.getStatusCode());
 
         assertThat(status).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -93,7 +93,7 @@ class BetControllerIT {
         ResponseEntity<PlaceBetResponse> entity = restClient.post()
                 .uri("/api/bets")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new PlaceBetRequest("user-2", "JP-FIXED", BigDecimal.valueOf(150)))
+                .body(new PlaceBetRequest(Optional.empty(), "user-2", "JP-FIXED", BigDecimal.valueOf(150)))
                 .retrieve()
                 .toEntity(PlaceBetResponse.class);
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);

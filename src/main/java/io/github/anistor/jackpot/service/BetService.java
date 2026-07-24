@@ -1,7 +1,9 @@
 package io.github.anistor.jackpot.service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,8 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+
+// TODO Rename to BetPlacingService
 
 /**
  * Entry point for placing bets. Persists the bet to the transactional outbox so it is never
@@ -36,18 +40,24 @@ public class BetService {
      * it here (rather than just publishing to Kafka directly) guarantees it survives a broker outage.
      */
     @Transactional
-    public String placeBet(String userId, String jackpotId, BigDecimal amount) {
+    public String placeBet(Optional<String> optBetId, String userId, String jackpotId, BigDecimal amount) {
         // use time-ordered UUID v7 because they index better in databases
-        String betId = UuidCreator.getTimeOrderedEpoch().toString();
+        String betId = optBetId.orElseGet(() -> UuidCreator.getTimeOrderedEpoch().toString());
 
+        // TODO perform early business validation (amount > 0, invalid jackpotId -> JackpotNotFoundException) rather
+        //  than relying on BetProcessingService to reject invalid bets later
         Bet bet = new Bet(betId, userId, jackpotId, amount);
         String payload = serialize(bet);
 
-        outboxRepository.save(OutboxEventEntity.builder()
-                .idempotencyKey(betId)
-                .routingKey(jackpotId)
-                .payload(payload)
-                .build());
+        try {
+            outboxRepository.saveAndFlush(OutboxEventEntity.builder()
+                    .idempotencyKey(betId)
+                    .routingKey(jackpotId)
+                    .payload(payload)
+                    .build());
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateBetException(betId, e);
+        }
 
         return betId;
     }

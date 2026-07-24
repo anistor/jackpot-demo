@@ -43,7 +43,7 @@ public class BetController {
     @ApiResponse(responseCode = "400", description = "Invalid bet request",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<PlaceBetResponse> placeBet(@Valid @RequestBody PlaceBetRequest request) {
-        String betId = betService.placeBet(request.userId(), request.jackpotId(), request.amount());
+        String betId = betService.placeBet(request.betId(), request.userId(), request.jackpotId(), request.amount());
         return ResponseEntity.accepted().body(new PlaceBetResponse(betId, BetStatus.PENDING));
     }
 

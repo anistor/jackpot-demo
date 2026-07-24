@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import io.github.anistor.jackpot.service.DuplicateBetException;
+
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
@@ -26,6 +28,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                         .collect(Collectors.joining(", "))
                 : e.getMessage();
         return ResponseEntity.status(statusCode).headers(headers).body(ErrorResponse.of(statusCode, message));
+    }
+
+    @ExceptionHandler(DuplicateBetException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateBetException(DuplicateBetException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(HttpStatus.CONFLICT, e.getMessage()));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
